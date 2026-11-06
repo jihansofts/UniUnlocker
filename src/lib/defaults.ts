@@ -6,7 +6,7 @@ import type { AboutDTO, WebsiteSettingsDTO } from "@/types";
  * fallback here because they only ever come from the database.
  */
 export const DEFAULT_SETTINGS: WebsiteSettingsDTO = {
-  siteName: "TechPro",
+  siteName: "UniUnlocker",
   tagline: "Mobile Solution",
   logo: "",
   favicon: "",
@@ -32,7 +32,7 @@ export const DEFAULT_ABOUT: AboutDTO = {
   image: "/images/about.png",
   profileImage: "",
   experience: "Hands-on mobile software experience",
-  signature: "Tech Pro",
+  signature: "UniUnlocker",
   skills: ["Android", "iOS", "Firmware", "Software Troubleshooting", "App Development"],
   features: ["Expert in Android & iOS", "Fast & Reliable Service", "Client Satisfaction First"],
 };

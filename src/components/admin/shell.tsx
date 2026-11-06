@@ -65,7 +65,7 @@ export function AdminShell({ email, children }: { email: string; children: React
         }`}
       >
         <div className="flex h-14 items-center justify-between border-b border-admin-line px-4">
-          <span className="font-semibold">TechPro Admin</span>
+          <span className="font-semibold">UniUnlocker Admin</span>
           <button type="button" aria-label="Close menu" onClick={() => setMenuOpen(false)} className="admin-icon-btn lg:hidden">
             <X aria-hidden className="size-5" />
           </button>

@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { requireAdminPage } from "@/lib/auth";
 
 export const metadata: Metadata = {
-  title: { default: "Admin", template: "%s | TechPro Admin" },
+  title: { default: "Admin", template: "%s | UniUnlocker Admin" },
   robots: { index: false, follow: false },
 };
 

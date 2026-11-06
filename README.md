@@ -1,4 +1,4 @@
-# TechPro Mobile Solution
+# UniUnlocker Mobile Solution
 
 A neon-themed portfolio website with an admin dashboard. Projects, services, server statuses and site content are all managed from `/admin` and stored in MongoDB, so changes never need a redeploy.
 
@@ -39,13 +39,13 @@ Only `NEXT_PUBLIC_SITE_URL` reaches the browser. Everything else stays on the se
 
 ## MongoDB setup
 
-**Local:** install MongoDB Community and use `mongodb://127.0.0.1:27017/techpro_mobile`.
+**Local:** install MongoDB Community and use `mongodb://127.0.0.1:27017/uniunlocker`.
 
 **Atlas:**
 
 1. Create a cluster and a database user.
 2. Under Network Access, allow your host's IP addresses. Serverless hosts without fixed IPs need `0.0.0.0/0`, so use a strong database password.
-3. Copy the connection string and add the database name, for example `...mongodb.net/techpro_mobile`.
+3. Copy the connection string and add the database name, for example `...mongodb.net/uniunlocker`.
 
 ## Admin account
 

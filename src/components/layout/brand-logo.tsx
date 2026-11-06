@@ -22,7 +22,7 @@ export function BrandLogo({
               <stop offset="1" stopColor="#087bff" />
             </linearGradient>
           </defs>
-          <path d="M5 6h38l-5 9H28l-8 28H10l8-28H9z" fill="url(#brand-mark)" />
+          <path d="M7 5h11v22a6 6 0 0 0 12 0V5h11v22a17 17 0 0 1-34 0z" fill="url(#brand-mark)" />
         </svg>
       )}
       <span className="flex flex-col leading-tight">
