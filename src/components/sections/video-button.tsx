@@ -1,7 +1,6 @@
 "use client";
 
 import { CirclePlay, X } from "lucide-react";
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { youtubeEmbedUrl } from "@/utils/format";
 
@@ -21,7 +20,7 @@ function VideoPlayer({ url }: { url: string }) {
   return <video src={url} controls autoPlay className="size-full bg-black" />;
 }
 
-export function VideoButton({ url }: { url: string }) {
+export function VideoButton({ url, contactHref }: { url: string; contactHref: string | null }) {
   const [open, setOpen] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
 
@@ -63,10 +62,20 @@ export function VideoButton({ url }: { url: string }) {
             ) : (
               <div className="flex flex-col items-center gap-4 px-6 pt-6 pb-10 text-center">
                 <CirclePlay aria-hidden className="size-12 text-cyan" />
-                <p className="text-muted">The introduction video is coming soon. In the meantime, feel free to get in touch.</p>
-                <Link href="/#contact" onClick={() => setOpen(false)} className="btn-neon">
-                  Contact me
-                </Link>
+                <p className="text-muted">
+                  The introduction video is coming soon.{contactHref && " In the meantime, feel free to get in touch."}
+                </p>
+                {contactHref && (
+                  <a
+                    href={contactHref}
+                    target={contactHref.startsWith("http") ? "_blank" : undefined}
+                    rel="noopener noreferrer"
+                    onClick={() => setOpen(false)}
+                    className="btn-neon"
+                  >
+                    Contact me
+                  </a>
+                )}
               </div>
             )}
           </>

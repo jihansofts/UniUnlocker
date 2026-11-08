@@ -21,6 +21,8 @@ export const DEFAULT_SETTINGS: WebsiteSettingsDTO = {
   contactPhone: "",
   contactAddress: "",
   whatsappNumber: "",
+  telegramUsername: "",
+  driverUrl: "",
   social: { facebook: "", youtube: "", linkedin: "", github: "", x: "" },
   footerText: "All rights reserved.",
 };

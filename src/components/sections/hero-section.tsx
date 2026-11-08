@@ -3,6 +3,7 @@ import Link from "next/link";
 import { HeroCopy, HeroVisual } from "@/components/sections/hero-visual";
 import { VideoButton } from "@/components/sections/video-button";
 import { getSettings } from "@/lib/data";
+import { contactLink } from "@/utils/format";
 
 export async function HeroSection() {
   const settings = await getSettings();
@@ -29,7 +30,7 @@ export async function HeroSection() {
             <p className="mt-3 max-w-lg text-lg text-muted">{settings.heroDescription}</p>
           )}
           <div className="mt-8 flex flex-wrap gap-4">
-            <VideoButton url={settings.heroVideoUrl} />
+            <VideoButton url={settings.heroVideoUrl} contactHref={contactLink(settings)} />
             <Link href="/#services" className="btn-outline">
               <Wrench aria-hidden className="size-5" /> Our Services
             </Link>

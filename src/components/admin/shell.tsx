@@ -3,6 +3,7 @@
 import {
   ExternalLink,
   FolderKanban,
+  Handshake,
   Info,
   LayoutDashboard,
   LogOut,
@@ -24,6 +25,7 @@ const NAV = [
   { href: "/admin/servers", label: "Servers", icon: Server },
   { href: "/admin/projects", label: "Projects", icon: FolderKanban },
   { href: "/admin/services", label: "Services", icon: Wrench },
+  { href: "/admin/partners", label: "Partners", icon: Handshake },
   { href: "/admin/about", label: "About", icon: Info },
   { href: "/admin/messages", label: "Messages", icon: Mail },
   { href: "/admin/settings", label: "Settings", icon: Settings },

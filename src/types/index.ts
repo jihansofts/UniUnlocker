@@ -36,11 +36,23 @@ export interface ServiceDTO {
   enabled: boolean;
 }
 
+export interface PartnerDTO {
+  id: string;
+  name: string;
+  logo: string;
+  /** Partner website; blank means the logo is not a link. */
+  url: string;
+  displayOrder: number;
+  enabled: boolean;
+}
+
 export interface ServerDTO {
   id: string;
   name: string;
   description: string;
   logo: string;
+  /** Free text such as "$5" or "500৳". Older records may not have it. */
+  price?: string;
   status: ServerStatus;
   enabled: boolean;
   displayOrder: number;
@@ -81,6 +93,10 @@ export interface WebsiteSettingsDTO {
   contactPhone: string;
   contactAddress: string;
   whatsappNumber: string;
+  /** Username (without @) or a t.me link. */
+  telegramUsername: string;
+  /** Where the "Get Driver" button goes; blank hides the button. */
+  driverUrl: string;
   social: SocialLinks;
   footerText: string;
 }

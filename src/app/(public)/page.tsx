@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { AboutSection } from "@/components/sections/about-section";
-import { ContactSection } from "@/components/sections/contact-section";
 import { HeroSection } from "@/components/sections/hero-section";
+import { PartnersSection } from "@/components/sections/partners-section";
 import { PortfolioSection } from "@/components/sections/portfolio-section";
 import { ServerStatusSection } from "@/components/sections/server-status-section";
 import { ServicesSection } from "@/components/sections/services-section";
@@ -25,8 +25,8 @@ export default function HomePage() {
       <Suspense fallback={<CardGridSkeleton height="h-64" />}>
         <PortfolioSection />
       </Suspense>
-      <Suspense fallback={<SplitSkeleton />}>
-        <ContactSection />
+      <Suspense fallback={<CardGridSkeleton count={5} columns="grid-cols-2 sm:grid-cols-3 lg:grid-cols-5" height="h-32" />}>
+        <PartnersSection />
       </Suspense>
     </>
   );

@@ -84,10 +84,21 @@ export const serviceSchema = z.object({
 
 export const servicePatchSchema = z.object({ enabled: z.boolean() }).partial();
 
+export const partnerSchema = z.object({
+  name: text(60, "Name"),
+  logo: imageUrl.refine((value) => value.length > 0, "Add a logo"),
+  url: optionalUrl,
+  displayOrder,
+  enabled: z.boolean().default(true),
+});
+
+export const partnerPatchSchema = z.object({ enabled: z.boolean() }).partial();
+
 export const serverSchema = z.object({
   name: text(60, "Name"),
   description: optionalText(300),
   logo: imageUrl,
+  price: optionalText(30),
   status: z.enum(SERVER_STATUSES).default("online"),
   enabled: z.boolean().default(true),
   displayOrder,
@@ -128,6 +139,13 @@ export const settingsSchema = z.object({
   contactPhone: optionalText(40),
   contactAddress: optionalText(200),
   whatsappNumber: phone("Use the international format, e.g. +8801700000000"),
+  telegramUsername: z
+    .string()
+    .trim()
+    .transform((value) => value.replace(/^(?:https?:\/\/)?(?:t\.me|telegram\.me)\//i, "").replace(/^@/, ""))
+    .pipe(z.string().regex(/^(?:[A-Za-z0-9_]{4,32})?$/, "Enter a Telegram username like uniunlocker, or a t.me link"))
+    .default(""),
+  driverUrl: optionalUrl,
   social: z.object({
     facebook: optionalUrl,
     youtube: optionalUrl,

@@ -50,3 +50,15 @@ export function whatsappLink(number: string, text?: string): string {
   const query = text ? `?text=${encodeURIComponent(text)}` : "";
   return `https://wa.me/${digits}${query}`;
 }
+
+export function telegramLink(username: string): string {
+  return `https://t.me/${username.replace(/^@/, "")}`;
+}
+
+/** Best way to reach the owner from site settings: WhatsApp first, then email; null if neither is set. */
+export function contactLink(settings: { whatsappNumber: string; contactEmail: string; siteName: string }): string | null {
+  if (settings.whatsappNumber.replace(/\D/g, "")) {
+    return whatsappLink(settings.whatsappNumber, `Hi ${settings.siteName}, I'd like to hire you.`);
+  }
+  return settings.contactEmail ? `mailto:${settings.contactEmail}` : null;
+}

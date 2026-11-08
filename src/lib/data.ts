@@ -5,11 +5,12 @@ import { DEFAULT_ABOUT, DEFAULT_SETTINGS } from "@/lib/defaults";
 import { connectToDatabase } from "@/lib/mongodb";
 import { serialize, serializeMany } from "@/lib/serialize";
 import { About } from "@/models/About";
+import { Partner } from "@/models/Partner";
 import { Project } from "@/models/Project";
 import { Server } from "@/models/Server";
 import { Service } from "@/models/Service";
 import { WebsiteSettings } from "@/models/WebsiteSettings";
-import type { AboutDTO, ProjectDTO, ServerDTO, ServiceDTO, WebsiteSettingsDTO } from "@/types";
+import type { AboutDTO, PartnerDTO, ProjectDTO, ServerDTO, ServiceDTO, WebsiteSettingsDTO } from "@/types";
 
 /**
  * Public read layer. Everything is read from MongoDB at request time, so admin
@@ -65,6 +66,17 @@ export const getEnabledServices = cache(() =>
     async () =>
       serializeMany<ServiceDTO>(
         await Service.find({ enabled: true }).sort({ displayOrder: 1, createdAt: 1 }).lean(),
+      ),
+    [],
+  ),
+);
+
+export const getEnabledPartners = cache(() =>
+  readOrFallback<PartnerDTO[]>(
+    "partners",
+    async () =>
+      serializeMany<PartnerDTO>(
+        await Partner.find({ enabled: true }).sort({ displayOrder: 1, createdAt: 1 }).lean(),
       ),
     [],
   ),

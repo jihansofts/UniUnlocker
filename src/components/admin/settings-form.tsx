@@ -87,6 +87,11 @@ function SettingsEditor({ initial }: { initial: WebsiteSettingsDTO }) {
         </div>
         {text("contactAddress", "Address")}
         {text("whatsappNumber", "WhatsApp number", "International format, e.g. +8801700000000. Blank hides the WhatsApp button.")}
+        {text("telegramUsername", "Telegram username", "Your username without @, or a t.me link. Blank hides the Telegram button.", "uniunlocker")}
+      </Section>
+
+      <Section title="Header buttons">
+        {text("driverUrl", "Get Driver link", "Where the Get Driver button goes (e.g. a Google Drive or download page). Blank hides the button.", "https://")}
       </Section>
 
       <Section title="Social links" description="Only networks with a link are shown on the website.">

@@ -13,7 +13,7 @@ import { apiFetch, clearFieldError, errorMessage, fieldErrorsOf, moved } from "@
 import { computeOverallStatus, OVERALL_META, STATUS_META } from "@/lib/server-status";
 import { SERVER_STATUSES, type ServerDTO, type ServerStatus } from "@/types";
 
-type Draft = Pick<ServerDTO, "name" | "description" | "logo" | "status" | "enabled" | "displayOrder">;
+type Draft = Pick<ServerDTO, "name" | "description" | "logo" | "status" | "enabled" | "displayOrder"> & { price: string };
 
 const STATUS_OPTIONS = SERVER_STATUSES.map((value) => ({ value, label: STATUS_META[value].label }));
 
@@ -61,6 +61,7 @@ function ServerForm({
       <TextField label="Name" value={draft.name} onChange={(value) => set("name", value)} error={errors.name} required />
       <TextAreaField label="Description" rows={2} value={draft.description} onChange={(value) => set("description", value)} error={errors.description} />
       <ImageField label="Brand logo" value={draft.logo} onChange={(value) => set("logo", value)} error={errors.logo} />
+      <TextField label="Price" placeholder="e.g. $5 or 500৳" value={draft.price} onChange={(value) => set("price", value)} error={errors.price} />
       <div className="grid gap-4 sm:grid-cols-2">
         <SelectField label="Status" value={draft.status} options={STATUS_OPTIONS} onChange={(value) => set("status", value)} error={errors.status} />
         <TextField
@@ -167,6 +168,7 @@ export function ServersManager() {
                 <div className="min-w-0">
                   <h2 className="truncate font-medium">{server.name}</h2>
                   <p className="text-xs text-admin-muted">
+                    {server.price && <span className="font-medium text-admin-text">{server.price} · </span>}
                     Updated <RelativeTime iso={server.statusUpdatedAt} />
                   </p>
                 </div>
@@ -226,8 +228,8 @@ export function ServersManager() {
             serverId={editing === "new" ? null : editing.id}
             initial={
               editing === "new"
-                ? { name: "", description: "", logo: "", status: "online", enabled: true, displayOrder: servers.length }
-                : editing
+                ? { name: "", description: "", logo: "", price: "", status: "online", enabled: true, displayOrder: servers.length }
+                : { ...editing, price: editing.price ?? "" }
             }
             onCancel={() => setEditing(null)}
             onSaved={() => {

@@ -3,10 +3,23 @@ import { BrandLogo } from "@/components/layout/brand-logo";
 import { Navbar } from "@/components/layout/navbar";
 import { SocialLinkList } from "@/components/ui/social-icons";
 import { getSettings } from "@/lib/data";
+import { telegramLink, whatsappLink } from "@/utils/format";
 
 export async function SiteNavbar() {
-  const { siteName, tagline, logo } = await getSettings();
-  return <Navbar brand={<BrandLogo siteName={siteName} tagline={tagline} logo={logo} />} />;
+  const settings = await getSettings();
+  const { siteName, tagline, logo } = settings;
+  return (
+    <Navbar
+      brand={<BrandLogo siteName={siteName} tagline={tagline} logo={logo} />}
+      actions={{
+        driverUrl: settings.driverUrl || null,
+        whatsappUrl: settings.whatsappNumber.replace(/\D/g, "")
+          ? whatsappLink(settings.whatsappNumber, `Hi ${siteName}, I'd like to hire you.`)
+          : null,
+        telegramUrl: settings.telegramUsername ? telegramLink(settings.telegramUsername) : null,
+      }}
+    />
+  );
 }
 
 export async function SiteFooter() {

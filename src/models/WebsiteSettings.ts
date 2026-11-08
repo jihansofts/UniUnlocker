@@ -20,6 +20,8 @@ const WebsiteSettingsSchema = new Schema<IWebsiteSettings>(
     contactPhone: String,
     contactAddress: String,
     whatsappNumber: String,
+    telegramUsername: String,
+    driverUrl: String,
     social: {
       facebook: String,
       youtube: String,

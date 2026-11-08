@@ -1,6 +1,6 @@
 "use client";
 
-import { CircleAlert, CircleCheck, Server, ShieldCheck, TriangleAlert, Wrench } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { SectionHeading } from "@/components/sections/section-heading";
 import { RelativeTime } from "@/components/ui/relative-time";
@@ -9,13 +9,15 @@ import { computeOverallStatus, OVERALL_META, STATUS_META } from "@/lib/server-st
 import type { OverallStatus, ServerDTO } from "@/types";
 
 const POLL_MS = 20_000;
+/** Online share (%) at which the status circle turns green. */
+const HEALTHY_PERCENT = 50;
 
-const OVERALL_VISUAL: Record<OverallStatus, { icon: typeof CircleCheck; color: string; glow: string }> = {
-  operational: { icon: CircleCheck, color: "text-status-online", glow: "var(--status-online)" },
-  partial_outage: { icon: TriangleAlert, color: "text-status-offline", glow: "var(--status-offline)" },
-  major_outage: { icon: CircleAlert, color: "text-status-offline", glow: "var(--status-offline)" },
-  under_maintenance: { icon: Wrench, color: "text-status-maintenance", glow: "var(--status-maintenance)" },
-  unknown: { icon: Server, color: "text-muted", glow: "var(--muted)" },
+const OVERALL_VISUAL: Record<OverallStatus, { color: string; glow: string }> = {
+  operational: { color: "text-status-online", glow: "var(--status-online)" },
+  partial_outage: { color: "text-status-offline", glow: "var(--status-offline)" },
+  major_outage: { color: "text-status-offline", glow: "var(--status-offline)" },
+  under_maintenance: { color: "text-status-maintenance", glow: "var(--status-maintenance)" },
+  unknown: { color: "text-muted", glow: "var(--muted)" },
 };
 
 /** Shows the latest statuses, refreshing in the background while the tab is visible. */
@@ -55,7 +57,23 @@ export function ServerStatusLive({ initialServers }: { initialServers: ServerDTO
   const overall = servers ? computeOverallStatus(servers) : "unknown";
   const meta = OVERALL_META[overall];
   const visual = OVERALL_VISUAL[overall];
-  const OverallIcon = visual.icon;
+  const total = servers?.length ?? 0;
+  const onlineCount = servers?.filter((server) => server.status === "online").length ?? 0;
+  const onlinePercent = total > 0 ? Math.round((onlineCount / total) * 100) : null;
+  // The circle follows the online share: green at or above the threshold, red below it.
+  const circle =
+    onlinePercent === null
+      ? OVERALL_VISUAL.unknown
+      : onlinePercent >= HEALTHY_PERCENT
+        ? OVERALL_VISUAL.operational
+        : OVERALL_VISUAL.major_outage;
+  const maintenanceCount = servers?.filter((server) => server.status === "maintenance").length ?? 0;
+  const onlineEnd = total > 0 ? (onlineCount / total) * 100 : 0;
+  const maintenanceEnd = total > 0 ? ((onlineCount + maintenanceCount) / total) * 100 : 0;
+  const ringBackground =
+    total > 0
+      ? `conic-gradient(var(--status-online) 0% ${onlineEnd}%, var(--status-maintenance) ${onlineEnd}% ${maintenanceEnd}%, var(--status-offline) ${maintenanceEnd}% 100%)`
+      : "var(--muted)";
 
   return (
     <div className="neon-card overflow-hidden p-5 sm:p-8">
@@ -88,6 +106,11 @@ export function ServerStatusLive({ initialServers }: { initialServers: ServerDTO
                     {index + 1}. {server.name}
                   </h3>
                   <SafeImage src={server.logo} alt="" width={48} height={48} className="size-12 rounded-lg object-contain" />
+                  {server.price && (
+                    <p className="rounded-full border border-cyan/40 bg-cyan/10 px-3 py-0.5 text-sm font-bold text-cyan">
+                      {server.price}
+                    </p>
+                  )}
                   <p className={`flex items-center gap-2 font-semibold ${status.text}`}>
                     <span aria-hidden className={`animate-pulse-dot size-3 rounded-full ${status.dot}`} />
                     {status.label}
@@ -106,11 +129,24 @@ export function ServerStatusLive({ initialServers }: { initialServers: ServerDTO
         )}
 
         <div className="flex flex-col items-center gap-3 border-line/40 text-center lg:border-l lg:pl-8">
+          {/* Ring split by share: green arc = online, yellow = maintenance, red = offline. */}
           <span
-            className={`flex size-24 items-center justify-center rounded-full border-2 border-current ${visual.color}`}
-            style={{ boxShadow: `0 0 26px ${visual.glow}, inset 0 0 18px ${visual.glow}` }}
+            className="relative flex size-24 items-center justify-center rounded-full p-1"
+            style={{ background: ringBackground, filter: `drop-shadow(0 0 10px ${circle.glow})` }}
           >
-            <OverallIcon aria-hidden className="size-12" />
+            <span
+              className={`flex size-full flex-col items-center justify-center rounded-full bg-background ${circle.color}`}
+              style={{ boxShadow: `inset 0 0 18px ${circle.glow}` }}
+            >
+              <span className="font-display text-2xl leading-none font-bold">
+                {onlinePercent === null ? "–" : `${onlinePercent}%`}
+              </span>
+              {onlinePercent !== null && (
+                <span className="mt-1 text-[11px] font-medium text-foreground/80">
+                  {onlineCount}/{total} Online
+                </span>
+              )}
+            </span>
           </span>
           <div role="status">
             <p className="text-sm font-semibold">Server Status</p>

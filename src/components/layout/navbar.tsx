@@ -1,21 +1,115 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Menu, Send, X } from "lucide-react";
+import { Download, Menu, Send, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { BrandIcon } from "@/components/ui/social-icons";
 
 const LINKS = [
   { id: "home", label: "Home" },
-  { id: "about", label: "About" },
   { id: "services", label: "Services" },
-  { id: "portfolio", label: "Portfolio" },
   { id: "servers", label: "Servers" },
-  { id: "contact", label: "Contact" },
+  { id: "partners", label: "Partners" },
 ];
 
-export function Navbar({ brand }: { brand: ReactNode }) {
+export interface HeaderActions {
+  driverUrl: string | null;
+  whatsappUrl: string | null;
+  telegramUrl: string | null;
+}
+
+const CHAT_STYLES = {
+  whatsapp: { label: "Chat on WhatsApp", className: "bg-[#25D366] shadow-[0_0_16px_rgb(37_211_102/0.6)]" },
+  telegram: { label: "Chat on Telegram", className: "bg-[#229ED9] shadow-[0_0_16px_rgb(34_158_217/0.6)]" },
+} as const;
+
+function chatOptions({ whatsappUrl, telegramUrl }: HeaderActions) {
+  return [
+    whatsappUrl && { key: "whatsapp" as const, href: whatsappUrl },
+    telegramUrl && { key: "telegram" as const, href: telegramUrl },
+  ].filter((option): option is { key: "whatsapp" | "telegram"; href: string } => Boolean(option));
+}
+
+function ChatIconLink({ kind, href, onClick }: { kind: "whatsapp" | "telegram"; href: string; onClick?: () => void }) {
+  const style = CHAT_STYLES[kind];
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={style.label}
+      title={style.label}
+      onClick={onClick}
+      className={`flex size-11 items-center justify-center rounded-full text-white transition hover:scale-110 ${style.className}`}
+    >
+      <BrandIcon name={kind} className="size-5" />
+    </a>
+  );
+}
+
+/** Opens on hover for mouse users and on tap for touch users; Escape or an outside tap closes it. */
+function HireMeMenu({ options }: { options: ReturnType<typeof chatOptions> }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointer = (event: PointerEvent) => {
+      if (!ref.current?.contains(event.target as Node)) setOpen(false);
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("pointerdown", onPointer);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onPointer);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  return (
+    <div
+      ref={ref}
+      className="relative"
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
+      <button
+        type="button"
+        aria-haspopup="true"
+        aria-expanded={open}
+        onClick={() => setOpen((value) => !value)}
+        className="btn-outline min-h-10! px-5! text-sm"
+      >
+        Hire Me <Send aria-hidden className="size-4" />
+      </button>
+      <AnimatePresence>
+        {open && (
+          // pt-2 bridges the gap below the button so moving the mouse down does not close it.
+          <motion.div
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.15 }}
+            className="absolute top-full right-0 z-50 pt-2"
+          >
+            <div className="flex gap-2 rounded-2xl border border-line/60 bg-surface/95 p-2 shadow-[0_8px_30px_rgb(0_0_0/0.5)] backdrop-blur-md">
+              {options.map(({ key, href }) => (
+                <ChatIconLink key={key} kind={key} href={href} onClick={() => setOpen(false)} />
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+export function Navbar({ brand, actions }: { brand: ReactNode; actions: HeaderActions }) {
+  const chats = chatOptions(actions);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState("home");
   const pathname = usePathname();
@@ -72,9 +166,14 @@ export function Navbar({ brand }: { brand: ReactNode }) {
         </ul>
 
         <div className="flex items-center gap-2">
-          <Link href="/#contact" className="btn-outline hidden min-h-10! px-5! text-sm sm:inline-flex">
-            Hire Me <Send aria-hidden className="size-4" />
-          </Link>
+          <div className="hidden items-center gap-2 sm:flex">
+            {actions.driverUrl && (
+              <a href={actions.driverUrl} target="_blank" rel="noopener noreferrer" className="btn-neon min-h-10! px-5! text-sm">
+                <Download aria-hidden className="size-4" /> Get Driver
+              </a>
+            )}
+            {chats.length > 0 && <HireMeMenu options={chats} />}
+          </div>
           <button
             type="button"
             aria-label={open ? "Close menu" : "Open menu"}
@@ -105,6 +204,24 @@ export function Navbar({ brand }: { brand: ReactNode }) {
                 </Link>
               </li>
             ))}
+            {/* The header buttons are hidden on small phones, so they are offered here instead. */}
+            {(actions.driverUrl || chats.length > 0) && (
+              <li className="flex flex-wrap items-center gap-3 border-t border-line/30 py-4 sm:hidden">
+                {actions.driverUrl && (
+                  <a href={actions.driverUrl} target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)} className="btn-neon min-h-10! px-5! text-sm">
+                    <Download aria-hidden className="size-4" /> Get Driver
+                  </a>
+                )}
+                {chats.length > 0 && (
+                  <span className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-muted">Hire Me:</span>
+                    {chats.map(({ key, href }) => (
+                      <ChatIconLink key={key} kind={key} href={href} onClick={() => setOpen(false)} />
+                    ))}
+                  </span>
+                )}
+              </li>
+            )}
           </motion.ul>
         )}
       </AnimatePresence>
