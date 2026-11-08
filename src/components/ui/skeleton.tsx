@@ -18,6 +18,25 @@ export function HeroSkeleton() {
   );
 }
 
+/** Just the grid of placeholder cards, for use inside a page that already has its heading. */
+export function GridSkeleton({
+  count = 4,
+  height = "h-44",
+  columns = "sm:grid-cols-2 lg:grid-cols-4",
+}: {
+  count?: number;
+  height?: string;
+  columns?: string;
+}) {
+  return (
+    <div role="status" aria-label="Loading" className={`grid gap-5 ${columns}`}>
+      {Array.from({ length: count }, (_, index) => (
+        <Skeleton key={index} className={`${height} rounded-2xl`} />
+      ))}
+    </div>
+  );
+}
+
 export function CardGridSkeleton({
   count = 4,
   height = "h-44",
@@ -31,10 +50,8 @@ export function CardGridSkeleton({
     <div role="status" aria-label="Loading" className="mx-auto max-w-7xl px-5 py-16 lg:px-8">
       <Skeleton className="mx-auto h-9 w-56" />
       <Skeleton className="mx-auto mt-3 h-5 w-72 max-w-full" />
-      <div className={`mt-10 grid gap-5 ${columns}`}>
-        {Array.from({ length: count }, (_, index) => (
-          <Skeleton key={index} className={`${height} rounded-2xl`} />
-        ))}
+      <div className="mt-10">
+        <GridSkeleton count={count} height={height} columns={columns} />
       </div>
     </div>
   );

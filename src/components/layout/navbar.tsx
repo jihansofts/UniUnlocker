@@ -82,7 +82,7 @@ function HireMeMenu({ options }: { options: ReturnType<typeof chatOptions> }) {
         aria-haspopup="true"
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
-        className="btn-outline min-h-10! px-5! text-sm"
+        className="btn-neon min-h-10! px-5! text-sm"
       >
         Hire Me <Send aria-hidden className="size-4" />
       </button>
@@ -167,12 +167,12 @@ export function Navbar({ brand, actions }: { brand: ReactNode; actions: HeaderAc
 
         <div className="flex items-center gap-2">
           <div className="hidden items-center gap-2 sm:flex">
+            {chats.length > 0 && <HireMeMenu options={chats} />}
             {actions.driverUrl && (
-              <a href={actions.driverUrl} target="_blank" rel="noopener noreferrer" className="btn-neon min-h-10! px-5! text-sm">
+              <a href={actions.driverUrl} target="_blank" rel="noopener noreferrer" className="btn-outline min-h-10! px-5! text-sm">
                 <Download aria-hidden className="size-4" /> Get Driver
               </a>
             )}
-            {chats.length > 0 && <HireMeMenu options={chats} />}
           </div>
           <button
             type="button"
@@ -207,11 +207,6 @@ export function Navbar({ brand, actions }: { brand: ReactNode; actions: HeaderAc
             {/* The header buttons are hidden on small phones, so they are offered here instead. */}
             {(actions.driverUrl || chats.length > 0) && (
               <li className="flex flex-wrap items-center gap-3 border-t border-line/30 py-4 sm:hidden">
-                {actions.driverUrl && (
-                  <a href={actions.driverUrl} target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)} className="btn-neon min-h-10! px-5! text-sm">
-                    <Download aria-hidden className="size-4" /> Get Driver
-                  </a>
-                )}
                 {chats.length > 0 && (
                   <span className="flex items-center gap-2">
                     <span className="text-sm font-medium text-muted">Hire Me:</span>
@@ -219,6 +214,11 @@ export function Navbar({ brand, actions }: { brand: ReactNode; actions: HeaderAc
                       <ChatIconLink key={key} kind={key} href={href} onClick={() => setOpen(false)} />
                     ))}
                   </span>
+                )}
+                {actions.driverUrl && (
+                  <a href={actions.driverUrl} target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)} className="btn-outline min-h-10! px-5! text-sm">
+                    <Download aria-hidden className="size-4" /> Get Driver
+                  </a>
                 )}
               </li>
             )}

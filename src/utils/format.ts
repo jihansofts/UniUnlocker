@@ -51,6 +51,15 @@ export function whatsappLink(number: string, text?: string): string {
   return `https://wa.me/${digits}${query}`;
 }
 
+export type Currency = "BDT" | "USD";
+
+const amountFormat = new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 });
+
+/** Fixed locale, so server and client render the same text. */
+export function formatPrice(amount: number, currency: Currency): string {
+  return `${currency === "USD" ? "$" : "৳"}${amountFormat.format(amount)}`;
+}
+
 export function telegramLink(username: string): string {
   return `https://t.me/${username.replace(/^@/, "")}`;
 }

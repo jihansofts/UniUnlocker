@@ -74,7 +74,7 @@ async function ProjectDetails({ params }: Pick<Props, "params">) {
 export default function ProjectPage({ params }: Props) {
   return (
     <div className="mx-auto max-w-4xl px-5 py-12 lg:px-8">
-      <Link href="/#portfolio" className="mb-8 inline-flex items-center gap-2 text-sm text-muted hover:text-cyan">
+      <Link href="/portfolio" className="mb-8 inline-flex items-center gap-2 text-sm text-muted hover:text-cyan">
         <ArrowLeft aria-hidden className="size-4" /> Back to all projects
       </Link>
       <Suspense

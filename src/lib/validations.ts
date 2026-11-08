@@ -37,6 +37,18 @@ const imageUrl = z
 
 const displayOrder = z.coerce.number().int().min(0).max(100000).default(0);
 
+/** Blank means "no price"; otherwise a non-negative amount. */
+const optionalPrice = z
+  .preprocess(
+    (value) => {
+      if (value === undefined || value === null) return null;
+      if (typeof value === "string") return value.trim() === "" ? null : Number(value.trim());
+      return value;
+    },
+    z.number({ error: "Enter a number, or leave it blank" }).min(0, "Price cannot be negative").max(100_000_000, "This price is too large").nullable(),
+  )
+  .default(null);
+
 const phone = (message: string) =>
   z
     .string()
@@ -98,7 +110,8 @@ export const serverSchema = z.object({
   name: text(60, "Name"),
   description: optionalText(300),
   logo: imageUrl,
-  price: optionalText(30),
+  priceBdt: optionalPrice,
+  priceUsd: optionalPrice,
   status: z.enum(SERVER_STATUSES).default("online"),
   enabled: z.boolean().default(true),
   displayOrder,

@@ -12,8 +12,15 @@ import { useResource } from "@/hooks/use-resource";
 import { apiFetch, clearFieldError, errorMessage, fieldErrorsOf, moved } from "@/lib/client-api";
 import { computeOverallStatus, OVERALL_META, STATUS_META } from "@/lib/server-status";
 import { SERVER_STATUSES, type ServerDTO, type ServerStatus } from "@/types";
+import { formatPrice } from "@/utils/format";
 
-type Draft = Pick<ServerDTO, "name" | "description" | "logo" | "status" | "enabled" | "displayOrder"> & { price: string };
+type Draft = Pick<ServerDTO, "name" | "description" | "logo" | "status" | "enabled" | "displayOrder"> & {
+  // Kept as text while typing; the API turns blank into "no price".
+  priceBdt: string;
+  priceUsd: string;
+};
+
+const priceText = (value: number | null | undefined) => (value == null ? "" : String(value));
 
 const STATUS_OPTIONS = SERVER_STATUSES.map((value) => ({ value, label: STATUS_META[value].label }));
 
@@ -61,7 +68,26 @@ function ServerForm({
       <TextField label="Name" value={draft.name} onChange={(value) => set("name", value)} error={errors.name} required />
       <TextAreaField label="Description" rows={2} value={draft.description} onChange={(value) => set("description", value)} error={errors.description} />
       <ImageField label="Brand logo" value={draft.logo} onChange={(value) => set("logo", value)} error={errors.logo} />
-      <TextField label="Price" placeholder="e.g. $5 or 500৳" value={draft.price} onChange={(value) => set("price", value)} error={errors.price} />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <TextField
+          label="Price (BDT ৳)"
+          type="number"
+          placeholder="e.g. 500"
+          hint="Blank hides the price in BDT."
+          value={draft.priceBdt}
+          onChange={(value) => set("priceBdt", value)}
+          error={errors.priceBdt}
+        />
+        <TextField
+          label="Price (USD $)"
+          type="number"
+          placeholder="e.g. 5"
+          hint="Blank hides the price in USD."
+          value={draft.priceUsd}
+          onChange={(value) => set("priceUsd", value)}
+          error={errors.priceUsd}
+        />
+      </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <SelectField label="Status" value={draft.status} options={STATUS_OPTIONS} onChange={(value) => set("status", value)} error={errors.status} />
         <TextField
@@ -168,7 +194,8 @@ export function ServersManager() {
                 <div className="min-w-0">
                   <h2 className="truncate font-medium">{server.name}</h2>
                   <p className="text-xs text-admin-muted">
-                    {server.price && <span className="font-medium text-admin-text">{server.price} · </span>}
+                    {server.priceBdt != null && <span className="font-medium text-admin-text">{formatPrice(server.priceBdt, "BDT")} · </span>}
+                    {server.priceUsd != null && <span className="font-medium text-admin-text">{formatPrice(server.priceUsd, "USD")} · </span>}
                     Updated <RelativeTime iso={server.statusUpdatedAt} />
                   </p>
                 </div>
@@ -228,8 +255,8 @@ export function ServersManager() {
             serverId={editing === "new" ? null : editing.id}
             initial={
               editing === "new"
-                ? { name: "", description: "", logo: "", price: "", status: "online", enabled: true, displayOrder: servers.length }
-                : { ...editing, price: editing.price ?? "" }
+                ? { name: "", description: "", logo: "", priceBdt: "", priceUsd: "", status: "online", enabled: true, displayOrder: servers.length }
+                : { ...editing, priceBdt: priceText(editing.priceBdt), priceUsd: priceText(editing.priceUsd) }
             }
             onCancel={() => setEditing(null)}
             onSaved={() => {

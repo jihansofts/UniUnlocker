@@ -51,8 +51,9 @@ export interface ServerDTO {
   name: string;
   description: string;
   logo: string;
-  /** Free text such as "$5" or "500৳". Older records may not have it. */
-  price?: string;
+  /** Prices per currency; null or missing means no price is shown for that currency. */
+  priceBdt?: number | null;
+  priceUsd?: number | null;
   status: ServerStatus;
   enabled: boolean;
   displayOrder: number;

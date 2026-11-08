@@ -1,24 +1,27 @@
-import { FolderOpen } from "lucide-react";
+import { ViewAllFooter } from "@/components/listing/view-all-link";
 import { PortfolioGrid } from "@/components/sections/portfolio-grid";
+import { ProjectsEmpty } from "@/components/sections/project-card";
 import { SectionHeading } from "@/components/sections/section-heading";
-import { EmptyState } from "@/components/ui/empty-state";
 import { Reveal } from "@/components/ui/reveal";
 import { getPublishedProjects } from "@/lib/data";
+import { HOME_LIMITS } from "@/lib/listing-config";
 
 export async function PortfolioSection() {
   const projects = await getPublishedProjects();
+  const shown = projects.slice(0, HOME_LIMITS.projects);
   return (
     <section id="portfolio" className="mx-auto max-w-7xl px-5 py-14 lg:px-8">
       <Reveal>
         <SectionHeading lead="My" highlight="Projects" subtitle="Some of my recent work" />
       </Reveal>
-      {projects.length === 0 ? (
+      {shown.length === 0 ? (
         <div className="mt-10">
-          <EmptyState icon={FolderOpen} title="Projects coming soon" message="New work will be published here shortly." />
+          <ProjectsEmpty />
         </div>
       ) : (
-        <PortfolioGrid projects={projects} />
+        <PortfolioGrid projects={shown} />
       )}
+      <ViewAllFooter href="/portfolio" shown={shown.length} total={projects.length} />
     </section>
   );
 }

@@ -2,10 +2,11 @@
 
 import { ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
+import { ViewAllLink } from "@/components/listing/view-all-link";
 import { SectionHeading } from "@/components/sections/section-heading";
-import { RelativeTime } from "@/components/ui/relative-time";
-import { SafeImage } from "@/components/ui/safe-image";
-import { computeOverallStatus, OVERALL_META, STATUS_META } from "@/lib/server-status";
+import { CurrencyToggle, ServerCardGrid } from "@/components/sections/server-card";
+import { HOME_LIMITS } from "@/lib/listing-config";
+import { computeOverallStatus, OVERALL_META } from "@/lib/server-status";
 import type { OverallStatus, ServerDTO } from "@/types";
 
 const POLL_MS = 20_000;
@@ -76,7 +77,11 @@ export function ServerStatusLive({ initialServers }: { initialServers: ServerDTO
       : "var(--muted)";
 
   return (
-    <div className="neon-card overflow-hidden p-5 sm:p-8">
+    <div className="neon-card relative overflow-hidden p-5 sm:p-8">
+      <div className="mb-4 flex items-center justify-end gap-2 md:absolute md:top-5 md:right-5 md:mb-0">
+        <CurrencyToggle />
+        <ViewAllLink href="/servers" size="small" />
+      </div>
       <SectionHeading highlight="Status" lead="Server" subtitle={meta.message} />
 
       <div className="mt-8 grid items-center gap-8 lg:grid-cols-[auto_1fr_auto]">
@@ -97,31 +102,14 @@ export function ServerStatusLive({ initialServers }: { initialServers: ServerDTO
         </div>
 
         {servers && servers.length > 0 ? (
-          <ul className="grid grid-cols-2 gap-3 md:grid-cols-4">
-            {servers.map((server, index) => {
-              const status = STATUS_META[server.status];
-              return (
-                <li key={server.id} className={`flex flex-col items-center gap-2.5 rounded-xl border bg-background/50 p-4 text-center ${status.border}`}>
-                  <h3 className="text-sm font-semibold">
-                    {index + 1}. {server.name}
-                  </h3>
-                  <SafeImage src={server.logo} alt="" width={48} height={48} className="size-12 rounded-lg object-contain" />
-                  {server.price && (
-                    <p className="rounded-full border border-cyan/40 bg-cyan/10 px-3 py-0.5 text-sm font-bold text-cyan">
-                      {server.price}
-                    </p>
-                  )}
-                  <p className={`flex items-center gap-2 font-semibold ${status.text}`}>
-                    <span aria-hidden className={`animate-pulse-dot size-3 rounded-full ${status.dot}`} />
-                    {status.label}
-                  </p>
-                  <p className="text-xs text-muted">
-                    Updated <RelativeTime iso={server.statusUpdatedAt} />
-                  </p>
-                </li>
-              );
-            })}
-          </ul>
+          <div>
+            <ServerCardGrid servers={servers.slice(0, HOME_LIMITS.servers)} className="grid grid-cols-2 gap-3 md:grid-cols-4" />
+            {servers.length > HOME_LIMITS.servers && (
+              <p className="mt-3 text-center text-xs text-muted">
+                Showing {HOME_LIMITS.servers} of {servers.length}
+              </p>
+            )}
+          </div>
         ) : (
           <p className="py-8 text-center text-muted">
             {servers ? "No servers are listed right now." : "Live status is temporarily unavailable."}
