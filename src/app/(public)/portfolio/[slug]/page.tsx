@@ -6,7 +6,7 @@ import { Suspense } from "react";
 import { SafeImage } from "@/components/ui/safe-image";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getPublishedProjectBySlug } from "@/lib/data";
-import { isAllowedImageUrl } from "@/lib/images";
+import { isUsableImageUrl } from "@/lib/images";
 
 type Props = PageProps<"/portfolio/[slug]">;
 
@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: "article",
       title: project.title,
       description: project.shortDescription,
-      images: isAllowedImageUrl(project.image) ? [project.image] : undefined,
+      images: isUsableImageUrl(project.image) ? [project.image] : undefined,
     },
   };
 }

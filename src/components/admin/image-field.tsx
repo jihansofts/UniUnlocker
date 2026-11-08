@@ -1,9 +1,9 @@
 "use client";
 
-import { ImagePlus, Search, Trash2, Upload } from "lucide-react";
+import { ImagePlus, Link2, Search, Trash2, Upload } from "lucide-react";
 import Image from "next/image";
 import { useRef, useState, type FormEvent } from "react";
-import { TextField } from "@/components/admin/form";
+import { FormField, TextField } from "@/components/admin/form";
 import { Modal } from "@/components/ui/modal";
 import { SafeImage } from "@/components/ui/safe-image";
 import { useToast } from "@/components/ui/toast";
@@ -70,7 +70,36 @@ function PexelsPicker({ open, onClose, onPick }: { open: boolean; onClose: () =>
   );
 }
 
-/** Image input: upload to Cloudinary, pick from Pexels, or paste an allowed URL. */
+function RemoveButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button type="button" onClick={onClick} className="admin-btn admin-btn-secondary">
+      <Trash2 aria-hidden className="size-4" /> Remove
+    </button>
+  );
+}
+
+type Mode = "upload" | "url";
+
+/** Images uploaded through this field live on Cloudinary; anything else was pasted or picked. */
+function modeOf(value: string): Mode {
+  if (!value) return "upload";
+  try {
+    return new URL(value).hostname === "res.cloudinary.com" ? "upload" : "url";
+  } catch {
+    return "url";
+  }
+}
+
+const MODES: Array<{ value: Mode; label: string; icon: typeof Upload }> = [
+  { value: "upload", label: "Upload", icon: Upload },
+  { value: "url", label: "Image URL", icon: Link2 },
+];
+
+/**
+ * Image input with two exclusive sources: upload a file, or use a link (pasted
+ * or picked from Pexels). While an image is set, the other source is locked
+ * until the image is removed, so it is always clear where the image came from.
+ */
 export function ImageField({
   label,
   value,
@@ -87,8 +116,12 @@ export function ImageField({
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
+  // A saved image opens on the tab it most likely came from; after that the tab
+  // only changes when the admin switches it, which is allowed while the field is empty.
+  const [mode, setMode] = useState<Mode>(() => modeOf(value));
   const { data: sources } = useResource<{ uploads: boolean; pexels: boolean }>("/api/upload");
   const toast = useToast();
+  const locked = Boolean(value) || uploading;
 
   async function upload(file: File) {
     const body = new FormData();
@@ -109,56 +142,94 @@ export function ImageField({
   return (
     <div className="rounded-lg border border-admin-line p-3">
       <div className="flex flex-col gap-3 sm:flex-row">
-        <div className="relative flex aspect-[3/2] w-full shrink-0 items-center justify-center overflow-hidden rounded-md bg-admin-bg sm:w-40">
+        <div className="relative flex aspect-3/2 w-full shrink-0 items-center justify-center overflow-hidden rounded-md bg-admin-bg sm:w-40">
           {value ? (
             <SafeImage src={value} alt={`${label} preview`} fill sizes="160px" className="object-cover" />
           ) : (
             <ImagePlus aria-hidden className="size-7 text-admin-muted" />
           )}
         </div>
-        <div className="min-w-0 flex-1 space-y-2">
-          <TextField
-            label={label}
-            value={value}
-            onChange={onChange}
-            error={error}
-            hint={hint ?? "Upload a file, or paste a Pexels or Cloudinary image URL."}
-            placeholder="https://"
-          />
-          <div className="flex flex-wrap gap-2">
-            <input
-              ref={inputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp,image/gif,image/x-icon,image/vnd.microsoft.icon"
-              aria-label={`Upload ${label}`}
-              className="sr-only"
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                if (file) void upload(file);
-              }}
-            />
-            <button
-              type="button"
-              disabled={uploading || sources?.uploads === false}
-              title={sources?.uploads === false ? "Add Cloudinary keys to enable uploads" : undefined}
-              onClick={() => inputRef.current?.click()}
-              className="admin-btn admin-btn-secondary"
-            >
-              <Upload aria-hidden className="size-4" /> {uploading ? "Uploading…" : "Upload"}
-            </button>
-            {sources?.pexels && (
-              <button type="button" onClick={() => setPickerOpen(true)} className="admin-btn admin-btn-secondary">
-                <Search aria-hidden className="size-4" /> Pexels
-              </button>
-            )}
-            {value && (
-              <button type="button" onClick={() => onChange("")} className="admin-btn admin-btn-secondary">
-                <Trash2 aria-hidden className="size-4" /> Remove
-              </button>
-            )}
+        <div className="min-w-0 flex-1 space-y-3">
+          <div role="group" aria-label={`${label} source`} className="inline-flex rounded-lg bg-admin-bg p-1">
+            {MODES.map(({ value: option, label: optionLabel, icon: Icon }) => {
+              const active = mode === option;
+              const disabled = !active && locked;
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  aria-pressed={active}
+                  disabled={disabled}
+                  title={disabled ? "Remove the current image to switch" : undefined}
+                  onClick={() => setMode(option)}
+                  className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-40 ${
+                    active ? "bg-admin-raised text-admin-text" : "text-admin-muted hover:text-admin-text"
+                  }`}
+                >
+                  <Icon aria-hidden className="size-3.5" /> {optionLabel}
+                </button>
+              );
+            })}
           </div>
-          {sources?.uploads === false && (
-            <p className="text-xs text-status-maintenance">Uploads are off until Cloudinary keys are added to the environment.</p>
+
+          {mode === "upload" ? (
+            <FormField
+              label={label}
+              error={error}
+              hint={hint ?? (value ? "Uploaded. Remove it to choose another file or use a link." : "JPG, PNG, WebP, GIF or ICO, up to 5 MB.")}
+            >
+              {(fieldProps) => (
+                <div className="flex flex-wrap gap-2">
+                  <input
+                    ref={inputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif,image/x-icon,image/vnd.microsoft.icon"
+                    tabIndex={-1}
+                    aria-hidden
+                    className="sr-only"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      if (file) void upload(file);
+                    }}
+                  />
+                  <button
+                    {...fieldProps}
+                    type="button"
+                    disabled={uploading || sources?.uploads === false}
+                    title={sources?.uploads === false ? "Add Cloudinary keys to enable uploads" : undefined}
+                    onClick={() => inputRef.current?.click()}
+                    className="admin-btn admin-btn-secondary"
+                  >
+                    <Upload aria-hidden className="size-4" />
+                    {uploading ? "Uploading…" : value ? "Replace file" : "Choose file"}
+                  </button>
+                  {value && <RemoveButton onClick={() => onChange("")} />}
+                </div>
+              )}
+            </FormField>
+          ) : (
+            <>
+              <TextField
+                label={label}
+                value={value}
+                onChange={onChange}
+                error={error}
+                hint={hint ?? "Paste a direct image link (right-click an image → Copy image address)."}
+                placeholder="https://"
+              />
+              <div className="flex flex-wrap gap-2">
+                {sources?.pexels && (
+                  <button type="button" onClick={() => setPickerOpen(true)} className="admin-btn admin-btn-secondary">
+                    <Search aria-hidden className="size-4" /> Pexels
+                  </button>
+                )}
+                {value && <RemoveButton onClick={() => onChange("")} />}
+              </div>
+            </>
+          )}
+
+          {mode === "upload" && sources?.uploads === false && (
+            <p className="text-xs text-status-maintenance">Uploads are off until Cloudinary keys are added. Use Image URL instead.</p>
           )}
         </div>
       </div>

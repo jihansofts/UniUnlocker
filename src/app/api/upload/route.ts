@@ -34,7 +34,7 @@ export const POST = adminRoute(async (request) => {
     throw new ApiError(415, "Use a JPG, PNG, WebP, GIF or ICO image.");
   }
 
-  const url = await uploadImage(buffer, "techpro").catch((error: unknown) => {
+  const url = await uploadImage(buffer).catch((error: unknown) => {
     console.error("[upload]", error);
     throw new ApiError(502, explainUploadError(error));
   });

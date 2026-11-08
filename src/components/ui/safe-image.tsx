@@ -2,17 +2,17 @@
 
 import Image, { type ImageProps } from "next/image";
 import { useState } from "react";
-import { FALLBACK_IMAGE, isAllowedImageUrl } from "@/lib/images";
+import { FALLBACK_IMAGE, isOptimizedImageUrl, isUsableImageUrl } from "@/lib/images";
 
 type SafeImageProps = Omit<ImageProps, "src"> & { src: string };
 
 /**
- * next/image with a fallback for images that are missing, fail to load, or come
- * from a host next/image is not configured for.
+ * next/image with a fallback for images that are missing or fail to load.
+ * Links from hosts the optimizer is not configured for load directly instead.
  */
 export function SafeImage({ src, alt, ...props }: SafeImageProps) {
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
-  const usable = src && isAllowedImageUrl(src) && failedSrc !== src;
+  const usable = src && isUsableImageUrl(src) && failedSrc !== src;
   const resolved = usable ? src : FALLBACK_IMAGE;
 
   return (
@@ -20,7 +20,7 @@ export function SafeImage({ src, alt, ...props }: SafeImageProps) {
       {...props}
       src={resolved}
       alt={alt}
-      unoptimized={resolved.endsWith(".svg")}
+      unoptimized={resolved.endsWith(".svg") || !isOptimizedImageUrl(resolved)}
       onError={() => setFailedSrc(src)}
     />
   );

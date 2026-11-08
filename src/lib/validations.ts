@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { isAllowedImageUrl } from "@/lib/images";
+import { isUsableImageUrl } from "@/lib/images";
 import { SERVICE_ICON_NAMES } from "@/lib/service-icons";
 import { PROJECT_STATUSES, SERVER_STATUSES } from "@/types";
 
@@ -30,8 +30,8 @@ const imageUrl = z
   .trim()
   .max(500, "This URL is too long")
   .refine(
-    (value) => !value || isAllowedImageUrl(value),
-    "Upload an image, or use a Pexels or Cloudinary URL",
+    (value) => !value || isUsableImageUrl(value),
+    "Upload an image, or paste an image link starting with https://",
   )
   .default("");
 
