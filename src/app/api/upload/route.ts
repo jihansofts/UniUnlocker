@@ -36,7 +36,32 @@ export const POST = adminRoute(async (request) => {
 
   const url = await uploadImage(buffer, "techpro").catch((error: unknown) => {
     console.error("[upload]", error);
-    throw new ApiError(502, "The image host rejected the upload. Please try again.");
+    throw new ApiError(502, explainUploadError(error));
   });
   return json({ url }, 201);
 });
+
+/**
+ * Turns Cloudinary's refusal into something the admin can act on. Only admins
+ * reach this route, and long tokens are masked so no key is ever echoed back.
+ */
+function explainUploadError(error: unknown): string {
+  const raw = String((error as { message?: unknown })?.message ?? "");
+  const message = raw.toLowerCase();
+  if (message.includes("invalid signature")) {
+    return "Cloudinary rejected the upload: CLOUDINARY_API_SECRET is wrong.";
+  }
+  if (message.includes("api_key") || message.includes("api key")) {
+    return "Cloudinary rejected the upload: CLOUDINARY_API_KEY is wrong.";
+  }
+  if (message.includes("disabled")) {
+    return "Cloudinary rejected the upload: the account is disabled or CLOUDINARY_CLOUD_NAME is wrong.";
+  }
+  if (message.includes("cloud_name") || message.includes("cloud name")) {
+    return "Cloudinary rejected the upload: CLOUDINARY_CLOUD_NAME is wrong.";
+  }
+  const detail = raw.replace(/[A-Za-z0-9_-]{16,}/g, "[hidden]").slice(0, 160);
+  return detail
+    ? `The image host rejected the upload: ${detail}`
+    : "The image host rejected the upload. Please try again.";
+}
