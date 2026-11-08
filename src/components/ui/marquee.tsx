@@ -63,7 +63,13 @@ export function Marquee({
   );
 
   return (
-    <div ref={containerRef} role="region" aria-label={label} className="marquee @container overflow-hidden py-1">
+    // Centered only while still; when moving, the track must start at the left edge to loop cleanly.
+    <div
+      ref={containerRef}
+      role="region"
+      aria-label={label}
+      className={`marquee @container overflow-hidden py-1 ${moving ? "" : "flex justify-center"}`}
+    >
       <div
         className={`flex w-max ${moving ? "marquee-track" : ""}`}
         style={moving ? { animationDuration: `${duration}s` } : undefined}
