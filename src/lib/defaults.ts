@@ -1,3 +1,4 @@
+import { DEFAULT_USD_TO_BDT } from "@/lib/pricing";
 import type { AboutDTO, WebsiteSettingsDTO } from "@/types";
 
 /**
@@ -23,6 +24,7 @@ export const DEFAULT_SETTINGS: WebsiteSettingsDTO = {
   whatsappNumber: "",
   telegramUsername: "",
   driverUrl: "",
+  usdToBdtRate: DEFAULT_USD_TO_BDT,
   social: { facebook: "", youtube: "", linkedin: "", github: "", x: "" },
   footerText: "All rights reserved.",
 };

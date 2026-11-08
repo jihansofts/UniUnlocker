@@ -314,3 +314,28 @@ dialog::backdrop {
 .animate-pulse-dot {
   animation: pulse-dot 2s ease-out infinite;
 }
+
+/* Endless left scroll used by <Marquee>: slides by one of the two identical copies. */
+@keyframes marquee-left {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee-track {
+  animation: marquee-left 30s linear infinite;
+}
+
+.marquee:hover .marquee-track,
+.marquee:focus-within .marquee-track {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee {
+    overflow-x: auto;
+  }
+  .marquee-track {
+    animation: none;
+  }
+}

@@ -54,7 +54,7 @@ function SettingsEditor({ initial }: { initial: WebsiteSettingsDTO }) {
     }
   }
 
-  const text = (key: Exclude<keyof WebsiteSettingsDTO, "social">, label: string, hint?: string, placeholder?: string) => (
+  const text = (key: Exclude<keyof WebsiteSettingsDTO, "social" | "usdToBdtRate">, label: string, hint?: string, placeholder?: string) => (
     <TextField label={label} value={draft[key]} error={errors[key]} hint={hint} placeholder={placeholder} onChange={(value) => set(key, value)} />
   );
 
@@ -88,6 +88,18 @@ function SettingsEditor({ initial }: { initial: WebsiteSettingsDTO }) {
         {text("contactAddress", "Address")}
         {text("whatsappNumber", "WhatsApp number", "International format, e.g. +8801700000000. Blank hides the WhatsApp button.")}
         {text("telegramUsername", "Telegram username", "Your username without @, or a t.me link. Blank hides the Telegram button.", "uniunlocker")}
+      </Section>
+
+      <Section title="Server prices" description="Each server price is entered in one currency; the other is calculated from this rate.">
+        <TextField
+          label="1 USD = ? BDT"
+          type="number"
+          placeholder="130"
+          hint="Example: 130 means $1 shows as ৳130 and ৳260 shows as $2. When the dollar rate changes, update it here and every server updates."
+          value={Number.isFinite(draft.usdToBdtRate) ? String(draft.usdToBdtRate) : ""}
+          onChange={(value) => set("usdToBdtRate", value === "" ? Number.NaN : Number(value))}
+          error={errors.usdToBdtRate}
+        />
       </Section>
 
       <Section title="Header buttons">

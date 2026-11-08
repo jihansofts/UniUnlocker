@@ -4,8 +4,7 @@ import { ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ViewAllLink } from "@/components/listing/view-all-link";
 import { SectionHeading } from "@/components/sections/section-heading";
-import { CurrencyToggle, ServerCardGrid } from "@/components/sections/server-card";
-import { HOME_LIMITS } from "@/lib/listing-config";
+import { CurrencyToggle, ServerMarquee } from "@/components/sections/server-card";
 import { computeOverallStatus, OVERALL_META } from "@/lib/server-status";
 import type { OverallStatus, ServerDTO } from "@/types";
 
@@ -102,13 +101,8 @@ export function ServerStatusLive({ initialServers }: { initialServers: ServerDTO
         </div>
 
         {servers && servers.length > 0 ? (
-          <div>
-            <ServerCardGrid servers={servers.slice(0, HOME_LIMITS.servers)} className="grid grid-cols-2 gap-3 md:grid-cols-4" />
-            {servers.length > HOME_LIMITS.servers && (
-              <p className="mt-3 text-center text-xs text-muted">
-                Showing {HOME_LIMITS.servers} of {servers.length}
-              </p>
-            )}
+          <div className="min-w-0">
+            <ServerMarquee servers={servers} />
           </div>
         ) : (
           <p className="py-8 text-center text-muted">

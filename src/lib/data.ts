@@ -3,6 +3,7 @@ import { connection } from "next/server";
 import { cache } from "react";
 import { DEFAULT_ABOUT, DEFAULT_SETTINGS } from "@/lib/defaults";
 import { connectToDatabase } from "@/lib/mongodb";
+import { withConvertedPrices } from "@/lib/pricing";
 import { serialize, serializeMany } from "@/lib/serialize";
 import { About } from "@/models/About";
 import { Partner } from "@/models/Partner";
@@ -82,11 +83,15 @@ export const getEnabledPartners = cache(() =>
   ),
 );
 
+/** Public server list, with any price given in only one currency converted at the admin's rate. */
 export async function findEnabledServers(): Promise<ServerDTO[]> {
   await connectToDatabase();
-  return serializeMany<ServerDTO>(
-    await Server.find({ enabled: true }).sort({ displayOrder: 1, createdAt: 1 }).lean(),
-  );
+  const [servers, settings] = await Promise.all([
+    Server.find({ enabled: true }).sort({ displayOrder: 1, createdAt: 1 }).lean(),
+    WebsiteSettings.findOne({ key: "singleton" }, { usdToBdtRate: 1 }).lean(),
+  ]);
+  const rate = settings?.usdToBdtRate ?? DEFAULT_SETTINGS.usdToBdtRate;
+  return serializeMany<ServerDTO>(servers).map((server) => withConvertedPrices(server, rate));
 }
 
 /** Returns null when the database is unreachable, so the UI never claims a status it cannot know. */

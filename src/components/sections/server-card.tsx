@@ -1,6 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { Marquee } from "@/components/ui/marquee";
 import { RelativeTime } from "@/components/ui/relative-time";
 import { SafeImage } from "@/components/ui/safe-image";
 import { STATUS_META } from "@/lib/server-status";
@@ -74,14 +75,19 @@ export function ServerCard({ server, number }: { server: ServerDTO; number: numb
   const [currency] = useCurrency();
   const status = STATUS_META[server.status];
   const amount = currency === "USD" ? server.priceUsd : server.priceBdt;
+  const approximate = server.convertedCurrency === currency;
   return (
-    <li className={`flex flex-col items-center gap-2.5 rounded-xl border bg-background/50 p-4 text-center ${status.border}`}>
+    <article className={`flex w-full flex-col items-center gap-2.5 rounded-xl border bg-background/50 p-4 text-center ${status.border}`}>
       <h3 className="text-sm font-semibold">
         {number}. {server.name}
       </h3>
       <SafeImage src={server.logo} alt="" width={48} height={48} className="size-12 rounded-lg object-contain" />
       {amount != null && (
-        <p className="rounded-full border border-cyan/40 bg-cyan/10 px-3 py-0.5 text-sm font-bold text-cyan">
+        <p
+          title={approximate ? `Converted from the ${currency === "USD" ? "BDT" : "USD"} price` : undefined}
+          className="rounded-full border border-cyan/40 bg-cyan/10 px-3 py-0.5 text-sm font-bold text-cyan"
+        >
+          {approximate && <span aria-label="about">≈ </span>}
           {formatPrice(amount, currency)}
         </p>
       )}
@@ -92,7 +98,18 @@ export function ServerCard({ server, number }: { server: ServerDTO; number: numb
       <p className="text-xs text-muted">
         Updated <RelativeTime iso={server.statusUpdatedAt} />
       </p>
-    </li>
+    </article>
+  );
+}
+
+/** Homepage: every server scrolling left, four in view (two on phones). */
+export function ServerMarquee({ servers }: { servers: ServerDTO[] }) {
+  return (
+    <Marquee label="Servers" itemClassName="w-[calc(100cqw/2)] md:w-[calc(100cqw/4)]">
+      {servers.map((server, index) => (
+        <ServerCard key={server.id} server={server} number={index + 1} />
+      ))}
+    </Marquee>
   );
 }
 
@@ -100,7 +117,9 @@ export function ServerCardGrid({ servers, startNumber = 1, className }: { server
   return (
     <ul className={className}>
       {servers.map((server, index) => (
-        <ServerCard key={server.id} server={server} number={startNumber + index} />
+        <li key={server.id} className="flex">
+          <ServerCard server={server} number={startNumber + index} />
+        </li>
       ))}
     </ul>
   );

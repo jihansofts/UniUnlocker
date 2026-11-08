@@ -1,9 +1,10 @@
-/** How many items each homepage section shows before "View All". */
+/**
+ * How many items each homepage grid shows before "View All". Servers and
+ * partners use a slider on the homepage instead, which holds all of them.
+ */
 export const HOME_LIMITS = {
   services: 5,
-  servers: 4,
   projects: 8,
-  partners: 10,
 } as const;
 
 /** Items per page on each "View All" page. */

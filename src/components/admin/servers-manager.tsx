@@ -11,16 +11,48 @@ import { useToast } from "@/components/ui/toast";
 import { useResource } from "@/hooks/use-resource";
 import { apiFetch, clearFieldError, errorMessage, fieldErrorsOf, moved } from "@/lib/client-api";
 import { computeOverallStatus, OVERALL_META, STATUS_META } from "@/lib/server-status";
-import { SERVER_STATUSES, type ServerDTO, type ServerStatus } from "@/types";
-import { formatPrice } from "@/utils/format";
+import { DEFAULT_USD_TO_BDT, withConvertedPrices } from "@/lib/pricing";
+import { SERVER_STATUSES, type ServerDTO, type ServerStatus, type WebsiteSettingsDTO } from "@/types";
+import { formatPrice, type Currency } from "@/utils/format";
 
 type Draft = Pick<ServerDTO, "name" | "description" | "logo" | "status" | "enabled" | "displayOrder"> & {
-  // Kept as text while typing; the API turns blank into "no price".
-  priceBdt: string;
-  priceUsd: string;
+  // One price in one currency; the website calculates the other from the rate in Settings.
+  price: string;
+  priceCurrency: Currency;
 };
 
-const priceText = (value: number | null | undefined) => (value == null ? "" : String(value));
+const CURRENCY_OPTIONS = [
+  { value: "BDT" as const, label: "৳ BDT" },
+  { value: "USD" as const, label: "$ USD" },
+];
+
+/** Opens an existing server on the currency its price was entered in (BDT if it somehow has both). */
+function priceDraft(server: Pick<ServerDTO, "priceBdt" | "priceUsd">): Pick<Draft, "price" | "priceCurrency"> {
+  if (server.priceBdt != null) return { price: String(server.priceBdt), priceCurrency: "BDT" };
+  if (server.priceUsd != null) return { price: String(server.priceUsd), priceCurrency: "USD" };
+  return { price: "", priceCurrency: "BDT" };
+}
+
+/** Live "≈ $2.08" preview under the price, so the admin sees what visitors will see. */
+function PricePreview({ price, currency }: { price: string; currency: Currency }) {
+  const { data } = useResource<{ settings: WebsiteSettingsDTO }>("/api/settings");
+  const rate = data?.settings.usdToBdtRate ?? DEFAULT_USD_TO_BDT;
+  const amount = Number(price);
+  if (price.trim() === "" || !Number.isFinite(amount) || amount < 0) return null;
+  const other: Currency = currency === "BDT" ? "USD" : "BDT";
+  const converted = withConvertedPrices(
+    { priceBdt: currency === "BDT" ? amount : null, priceUsd: currency === "USD" ? amount : null } as ServerDTO,
+    rate,
+  );
+  const otherAmount = other === "USD" ? converted.priceUsd : converted.priceBdt;
+  if (otherAmount == null) return null;
+  return (
+    <p className="-mt-2 text-xs text-admin-muted">
+      Visitors see <span className="font-semibold text-admin-text">{formatPrice(amount, currency)}</span> or{" "}
+      <span className="font-semibold text-admin-text">≈ {formatPrice(otherAmount, other)}</span> (1 USD = {rate} BDT, change it in Settings).
+    </p>
+  );
+}
 
 const STATUS_OPTIONS = SERVER_STATUSES.map((value) => ({ value, label: STATUS_META[value].label }));
 
@@ -48,10 +80,12 @@ function ServerForm({
     event.preventDefault();
     setBusy(true);
     setErrors({});
+    const { price, priceCurrency, ...rest } = draft;
     try {
       await apiFetch(serverId ? `/api/servers/${serverId}` : "/api/servers", {
         method: serverId ? "PUT" : "POST",
-        body: draft,
+        // Only the chosen currency is stored, so the other is always calculated from the current rate.
+        body: { ...rest, priceBdt: priceCurrency === "BDT" ? price : "", priceUsd: priceCurrency === "USD" ? price : "" },
       });
       toast.success(serverId ? "Server updated." : "Server added.");
       onSaved();
@@ -68,26 +102,19 @@ function ServerForm({
       <TextField label="Name" value={draft.name} onChange={(value) => set("name", value)} error={errors.name} required />
       <TextAreaField label="Description" rows={2} value={draft.description} onChange={(value) => set("description", value)} error={errors.description} />
       <ImageField label="Brand logo" value={draft.logo} onChange={(value) => set("logo", value)} error={errors.logo} />
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-[1fr_9rem]">
         <TextField
-          label="Price (BDT ৳)"
+          label="Price"
           type="number"
-          placeholder="e.g. 500"
-          hint="Blank hides the price in BDT."
-          value={draft.priceBdt}
-          onChange={(value) => set("priceBdt", value)}
-          error={errors.priceBdt}
+          placeholder={draft.priceCurrency === "BDT" ? "e.g. 260" : "e.g. 2"}
+          hint="Enter it once; the other currency is calculated. Blank shows no price."
+          value={draft.price}
+          onChange={(value) => set("price", value)}
+          error={errors.priceBdt ?? errors.priceUsd}
         />
-        <TextField
-          label="Price (USD $)"
-          type="number"
-          placeholder="e.g. 5"
-          hint="Blank hides the price in USD."
-          value={draft.priceUsd}
-          onChange={(value) => set("priceUsd", value)}
-          error={errors.priceUsd}
-        />
+        <SelectField label="Currency" value={draft.priceCurrency} options={CURRENCY_OPTIONS} onChange={(value) => set("priceCurrency", value)} />
       </div>
+      <PricePreview price={draft.price} currency={draft.priceCurrency} />
       <div className="grid gap-4 sm:grid-cols-2">
         <SelectField label="Status" value={draft.status} options={STATUS_OPTIONS} onChange={(value) => set("status", value)} error={errors.status} />
         <TextField
@@ -255,8 +282,8 @@ export function ServersManager() {
             serverId={editing === "new" ? null : editing.id}
             initial={
               editing === "new"
-                ? { name: "", description: "", logo: "", priceBdt: "", priceUsd: "", status: "online", enabled: true, displayOrder: servers.length }
-                : { ...editing, priceBdt: priceText(editing.priceBdt), priceUsd: priceText(editing.priceUsd) }
+                ? { name: "", description: "", logo: "", price: "", priceCurrency: "BDT", status: "online", enabled: true, displayOrder: servers.length }
+                : { ...editing, ...priceDraft(editing) }
             }
             onCancel={() => setEditing(null)}
             onSaved={() => {

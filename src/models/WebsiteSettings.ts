@@ -22,6 +22,7 @@ const WebsiteSettingsSchema = new Schema<IWebsiteSettings>(
     whatsappNumber: String,
     telegramUsername: String,
     driverUrl: String,
+    usdToBdtRate: Number,
     social: {
       facebook: String,
       youtube: String,

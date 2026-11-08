@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { isUsableImageUrl } from "@/lib/images";
+import { DEFAULT_USD_TO_BDT } from "@/lib/pricing";
 import { SERVICE_ICON_NAMES } from "@/lib/service-icons";
 import { PROJECT_STATUSES, SERVER_STATUSES } from "@/types";
 
@@ -159,6 +160,11 @@ export const settingsSchema = z.object({
     .pipe(z.string().regex(/^(?:[A-Za-z0-9_]{4,32})?$/, "Enter a Telegram username like uniunlocker, or a t.me link"))
     .default(""),
   driverUrl: optionalUrl,
+  usdToBdtRate: z.coerce
+    .number({ error: "Enter a number, e.g. 130" })
+    .gt(0, "The rate must be more than 0")
+    .max(100_000, "This rate is too large")
+    .default(DEFAULT_USD_TO_BDT),
   social: z.object({
     facebook: optionalUrl,
     youtube: optionalUrl,
